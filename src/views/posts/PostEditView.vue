@@ -1,14 +1,23 @@
 <template>
-  <div>
+  <AppLoading v-if="loading" />
+  <AppError v-else-if="error" :message="error.message" />
+
+  <div v-else>
     <h2>게시글 수정</h2>
     <hr class="my-4" />
+    <AppError v-if="editError" :message="editError.message" />
     <PostForm v-model:title="form.title" v-model:content="form.content" @submit.prevent="edit">
       <template #actions>
         <button type="button" class="btn btn-outline-danger" @click="goDetailPage">취소</button>
-        <button class="btn btn-primary">수정</button>
+        <button class="btn btn-primary" :disabled="editLoading">
+          <template v-if="editLoading">
+            <span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span>
+            <span class="visually-hidden">Loading...</span>
+          </template>
+          <template v-else> 수정 </template>
+        </button>
       </template>
     </PostForm>
-    <AppAlert :items="alerts" />
   </div>
 </template>
 
@@ -17,53 +26,42 @@ import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { getPostById, updatePost } from '@/api/posts';
 import PostForm from '@/components/posts/PostForm.vue';
-import AppAlert from '@/components/AppAlert.vue';
+import { useAlert } from '@/composables/alert';
+import { useAxios } from '@/hooks/useAxios';
 
 const route = useRoute();
 const router = useRouter();
 const id = route.params.id;
 
-const form = ref({
-  title: null,
-  conent: null,
-});
+// alert
+const { vAlert, vSuccess } = useAlert();
 
-const fetchPost = async () => {
-  try {
-    const { data } = await getPostById(id);
-    setForm(data);
-  } catch (error) {
-    console.error(error);
-    vAlert(error.message);
-  }
+const { data: form, error, loading } = useAxios(`/posts/${id}`);
+
+const {
+  error: editError,
+  loading: editLoading,
+  execute,
+} = useAxios(
+  `/posts/${id}`,
+  { method: 'patch' },
+  {
+    immediate: false,
+    onSuccess: () => {
+      router.push({ name: 'PostDetail', params: id });
+      vSuccess('수정이 완료되었습니다!');
+    },
+    onError: (err) => {
+      vAlert(err.message);
+    },
+  },
+);
+
+const edit = () => {
+  execute({
+    ...form.value,
+  });
 };
-const setForm = ({ title, content }) => {
-  form.value.title = title;
-  form.value.content = content;
-};
-fetchPost();
 
 const goDetailPage = () => router.push({ name: 'PostDetail', params: { id } });
-const edit = async () => {
-  try {
-    await updatePost(id, { ...form.value });
-    //  router.push({ name: 'PostDetail', params: id });
-    vAlert('수정이 완료되었습니다!', 'success');
-  } catch (error) {
-    console.error(error);
-    vAlert(error.message);
-  }
-};
-
-// alert
-
-const alerts = ref([]);
-const vAlert = (message, type = 'error') => {
-  alerts.value.push({ message, type });
-  setTimeout(() => {
-    alerts.value.shift();
-  }, 2000);
-};
 </script>
-
-<style lang="scss" scoped></style>

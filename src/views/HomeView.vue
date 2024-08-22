@@ -8,15 +8,22 @@
     <AppGrid :items="items" v-slot="{ item }">
       <AppCard>{{ item }}</AppCard>
     </AppGrid>
+    <hr class="my-4" />
   </div>
 </template>
 
-<script setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+<script>
+export default {
+  created() {
+    // console.log(this.$person.name);
+    // this.$person.say();
+  },
+};
+</script>
 
-import AppCard from '@/components/AppCard.vue';
-import AppGrid from '@/components/AppGrid.vue';
+<script setup>
+import { inject, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const goAboutPage = () => {
