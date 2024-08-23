@@ -2,17 +2,18 @@
   <AppLoading v-if="loading" />
   <AppError v-else-if="error" :message="error.message" />
   <div v-else>
-    <h2>{{ post.title }}</h2>
+    <h2 class="mb-4">{{ post.title }}</h2>
+    <p>id: {{ props.id }}, isOdd: {{ isOdd }}</p>
     <p>{{ post.content }}</p>
     <p class="text-muted">{{ $dayjs(post.createdAt).format('YYYY. MM. DD HH:mm:ss') }}</p>
     <hr class="my-4" />
     <AppError v-if="removeError" :message="removeError.message" />
     <div class="row g-2">
       <div class="col-auto">
-        <button class="btn btn-outline-dark">이전글</button>
+        <button class="btn btn-outline-dark" @click="$router.push('/posts/15')">이전글</button>
       </div>
       <div class="col-auto">
-        <button class="btn btn-outline-dark">다음글</button>
+        <button class="btn btn-outline-dark" @click="$router.push('/posts/16')">다음글</button>
       </div>
       <div class="col-auto me-auto"></div>
       <div class="col-auto">
@@ -35,19 +36,23 @@
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router';
-import { deletePost } from '@/api/posts';
-import { ref } from 'vue';
+import { onBeforeRouteLeave, onBeforeRouteUpdate, useRouter } from 'vue-router';
+import { computed, toRefs } from 'vue';
 import { useAlert } from '@/composables/alert';
 import { useAxios } from '@/hooks/useAxios';
+import { useNumber } from '@/composables/number';
 
 const props = defineProps({
   id: [String, Number],
 });
 
 const router = useRouter();
+//const idRef = toRef(props, 'id');
+const { id: idRef } = toRefs(props);
+const { isOdd } = useNumber(idRef);
 const { vAlert, vSuccess } = useAlert();
-const { error, loading, data: post } = useAxios(`/posts/${props.id}`);
+const url = computed(() => `/posts/${props.id}`);
+const { error, loading, data: post } = useAxios(url);
 
 const {
   error: removeError,
@@ -77,6 +82,20 @@ const remove = async () => {
 
 const goListPage = () => router.push({ name: 'PostList' });
 const goEditPage = () => router.push({ name: 'PostEdit', params: { id: props.id } });
+
+onBeforeRouteUpdate(() => {
+  console.log('onBeforeRouteUpdate');
+});
+onBeforeRouteLeave(() => {
+  console.log('onBeforeRouteLeave');
+});
+</script>
+<script>
+export default {
+  beforeRouteEnter() {
+    console.log('beforeRouteEnter');
+  },
+};
 </script>
 
 <style lang="scss" scoped></style>

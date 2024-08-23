@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory } from 'vue-router';
 import HomeView from '@/views/HomeView.vue';
 import AboutView from '@/views/AboutView.vue';
 import PostCreateView from '@/views/posts/PostCreateView.vue';
@@ -10,6 +10,7 @@ import NestedView from '@/views/nested/NestedView.vue';
 import NestedOneView from '@/views/nested/NestedOneView.vue';
 import NestedTwoView from '@/views/nested/NestedTwoView.vue';
 import NestedHomeView from '@/views/nested/NestedHomeView.vue';
+import MyPage from '@/views/MyPage.vue';
 
 const routes = [
   {
@@ -72,12 +73,36 @@ const routes = [
       },
     ],
   },
+  {
+    path: '/my',
+    name: 'MyPage',
+    component: MyPage,
+    beforeEnter: [removeQueryString],
+  },
 ];
+function removeQueryString(to) {
+  // ✨Object.keys 메서드를 사용하면 query 객체 안에 있는 key를 배열로 반환
+  if (Object.keys(to.query).length > 0) {
+    // path는 원래 가려던 페이지로 이동, query 는 빈 배열로 반환 => url에서 쿼리 지우기
+    return { path: to.path, query: {} };
+  }
+}
 
 const router = createRouter({
   history: createWebHistory('/'),
   //history: createWebHashHistory(),
   routes,
 });
+
+// router.beforeEach((to, from) => {
+//   console.log('to: ', to);
+//   console.log('from: ', from);
+//   if (to.name === 'MyPage') {
+//     //router.push({ name: 'Home' });
+//     //return false;
+//     // return { name: 'Home' };
+//     return '/posts';
+//   }
+// });
 
 export default router;
